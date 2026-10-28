@@ -167,3 +167,38 @@ describe("range capping logic", () => {
     expect(capped).toBe(false);
   });
 });
+
+// ── payment_failed downgrade logic ────────────────────────────────────────────
+
+describe("past_due downgrade logic", () => {
+  /** Mirrors the status logic in plan-gate.ts */
+  function resolvePlanId(
+    planId: string,
+    status: string,
+  ): string {
+    const isActive = status === "active" || status === "trialing";
+    return isActive ? planId : "starter";
+  }
+
+  it("active standard user keeps standard access", () => {
+    expect(resolvePlanId("standard", "active")).toBe("standard");
+  });
+
+  it("trialing premium user keeps premium access", () => {
+    expect(resolvePlanId("premium", "trialing")).toBe("premium");
+  });
+
+  it("past_due user falls back to starter limits", () => {
+    expect(resolvePlanId("standard", "past_due")).toBe("starter");
+  });
+
+  it("canceled user falls back to starter limits", () => {
+    expect(resolvePlanId("premium", "canceled")).toBe("starter");
+  });
+
+  it("starter limits for past_due mean no activity feed", () => {
+    const limits = getPlanLimits(resolvePlanId("standard", "past_due"));
+    expect(limits.maxActivityItems).toBe(0);
+    expect(limits.maxStatsDays).toBe(7);
+  });
+});

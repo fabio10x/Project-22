@@ -17,6 +17,11 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .env
+.env.*
+
+# IDE config folders (may contain tokens)
+.continue/
+.builder/
 .DS_Store
 *.suo
 *.ntvs*
